@@ -1,6 +1,6 @@
 "use client";
 import { useConversationStore } from "@/store/conversationStore";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface Props {
   onSelectConversation: (id: string) => void;
@@ -16,10 +16,14 @@ export function Sidebar({ onSelectConversation, onNewChat, isOpen, onClose }: Pr
   const [mounted, setMounted] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
-  useEffect(() => {
+  const stableLoad = useCallback(() => {
     loadFromStorage();
+  }, [loadFromStorage]);
+
+  useEffect(() => {
+    stableLoad();
     setMounted(true);
-  }, []);
+  }, [stableLoad]);
 
   function startRename(id: string, title: string) {
     setEditingId(id);
@@ -44,7 +48,7 @@ export function Sidebar({ onSelectConversation, onNewChat, isOpen, onClose }: Pr
   function getDateLabel(timestamp: number): "today" | "yesterday" | "week" | "older" {
     const now = new Date();
     const date = new Date(timestamp);
-    
+
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
     const yesterdayStart = todayStart - 86400000;
     const weekStart = todayStart - 6 * 86400000;
@@ -55,7 +59,6 @@ export function Sidebar({ onSelectConversation, onNewChat, isOpen, onClose }: Pr
     return "older";
   }
 
-  // Only show conversations with messages
   const validConvs = conversations.filter(c => c.messages.length > 0);
 
   const groups: Record<string, typeof validConvs> = {
@@ -77,9 +80,9 @@ export function Sidebar({ onSelectConversation, onNewChat, isOpen, onClose }: Pr
   };
 
   function formatTime(timestamp: number) {
-    return new Date(timestamp).toLocaleTimeString([], { 
-      hour: "2-digit", 
-      minute: "2-digit" 
+    return new Date(timestamp).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
     });
   }
 

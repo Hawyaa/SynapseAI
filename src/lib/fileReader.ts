@@ -49,9 +49,6 @@ async function extractTextFromImage(file: File): Promise<string> {
     const preprocessedUrl = await preprocessImageForOCR(file);
     const result = await Tesseract.recognize(preprocessedUrl, "eng", {
       logger: () => {},
-      // Self-hosted assets — without these, Tesseract.js silently tries to
-      // fetch worker/core/language files from cdn.jsdelivr.net, which fails
-      // (and is caught below) in any offline or network-restricted setup.
       workerPath: "/tesseract/worker.min.js",
       corePath: "/tesseract/tesseract-core.wasm.js",
       langPath: "/tesseract",
@@ -70,13 +67,11 @@ async function extractTextFromImage(file: File): Promise<string> {
   }
 }
 
-// Upscale + grayscale + contrast-boost before OCR — significantly improves
-// accuracy on small UI text and busy/dense screenshots (vs. plain scanned docs).
 async function preprocessImageForOCR(file: File): Promise<string> {
   const imageUrl = URL.createObjectURL(file);
   try {
     const img = await loadImage(imageUrl);
-    const scale = img.width < 1200 ? 2 : 1; // upscale small/medium images only
+    const scale = img.width < 1200 ? 2 : 1;
     const canvas = document.createElement("canvas");
     canvas.width = img.width * scale;
     canvas.height = img.height * scale;
@@ -97,7 +92,7 @@ async function preprocessImageForOCR(file: File): Promise<string> {
 
     return canvas.toDataURL("image/png");
   } catch {
-    return imageUrl; // fall back to original if preprocessing fails
+    return imageUrl;
   } finally {
     URL.revokeObjectURL(imageUrl);
   }
@@ -121,6 +116,10 @@ function toBase64(file: File): Promise<string> {
   });
 }
 
+interface PdfTextItem {
+  str: string;
+}
+
 async function readPDF(file: File): Promise<string> {
   const pdfjsLib = await import("pdfjs-dist");
   pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.mjs";
@@ -132,7 +131,7 @@ async function readPDF(file: File): Promise<string> {
   for (let i = 1; i <= Math.min(pdf.numPages, 20); i++) {
     const page = await pdf.getPage(i);
     const content = await page.getTextContent();
-    const pageText = content.items.map((item: any) => item.str).join(" ");
+    const pageText = content.items.map((item: PdfTextItem) => item.str).join(" ");
     text += `\n--- Page ${i} ---\n${pageText}`;
   }
 

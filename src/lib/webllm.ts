@@ -10,7 +10,7 @@ export async function getEngine(
   if (engine && loadedModelId === modelId) return engine;
 
   if (engine) {
-    try { await (engine as any).unload?.(); } catch {}
+    try { await (engine as MLCEngine & { unload?: () => Promise<void> }).unload?.(); } catch {}
     engine = null;
   }
 
