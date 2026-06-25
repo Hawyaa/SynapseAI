@@ -27,7 +27,7 @@ export default function Chat() {
   } = useModelStore();
 
   const {
-    messages, isStreaming, systemPrompt,
+    messages, isStreaming,
     addMessage, updateMessage, setStreaming,
     stopGeneration, setAbortController,
   } = useChatStore();

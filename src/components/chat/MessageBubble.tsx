@@ -11,7 +11,7 @@ interface Props {
   isLast?: boolean;
 }
 
-export function MessageBubble({ message, onEdit }: Props) {
+export function MessageBubble({ message, onEdit, isLast }: Props) {
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState(message.content);

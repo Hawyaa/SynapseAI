@@ -26,7 +26,6 @@ const TEST_PROMPTS = [
 export default function Benchmark() {
   const [results, setResults] = useState<BenchmarkResult[]>([]);
   const [running, setRunning] = useState(false);
-  const [currentModel, setCurrentModel] = useState("");
   const [currentPrompt, setCurrentPrompt] = useState("");
   const [progress, setProgress] = useState(0);
   const { selectedModel, status } = useModelStore();
@@ -42,12 +41,10 @@ export default function Benchmark() {
     setProgress(0);
 
     const modelName = MODELS.find(m => m.id === selectedModel)?.name ?? selectedModel;
-    setCurrentModel(modelName);
 
     try {
       const engine = await getEngine(selectedModel, () => {});
       let totalTokens = 0;
-      let totalTime = 0;
       let firstTokenTime = 0;
       const startAll = performance.now();
 
@@ -77,7 +74,6 @@ export default function Benchmark() {
         }
 
         totalTokens += tokenCount;
-        totalTime += performance.now() - start;
       }
 
       setProgress(100);
@@ -108,7 +104,7 @@ export default function Benchmark() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "localmind-benchmark.json";
+    a.download = "synapse-benchmark.json";
     a.click();
   }
 
@@ -121,11 +117,9 @@ export default function Benchmark() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "localmind-benchmark.csv";
+    a.download = "synapse-benchmark.csv";
     a.click();
   }
-
-  const maxTPS = Math.max(...results.map(r => r.tokensPerSecond), 1);
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -139,7 +133,6 @@ export default function Benchmark() {
 
       <div className="max-w-2xl mx-auto px-6 py-10 space-y-8">
 
-        {/* Info */}
         <section>
           <h2 className="text-lg font-semibold mb-1">Performance Benchmark</h2>
           <p className="text-sm text-white/40">
@@ -148,7 +141,6 @@ export default function Benchmark() {
           </p>
         </section>
 
-        {/* Current model */}
         <div className="border border-white/10 rounded-2xl p-5 bg-white/[0.02] flex items-center justify-between">
           <div>
             <p className="text-xs text-white/40 mb-1">Currently loaded model</p>
@@ -161,7 +153,6 @@ export default function Benchmark() {
           <div className={`w-2 h-2 rounded-full ${status === "ready" ? "bg-green-400 animate-pulse" : "bg-white/20"}`} />
         </div>
 
-        {/* Test prompts */}
         <section>
           <h3 className="text-sm font-medium text-white/60 mb-3">Test prompts</h3>
           <div className="space-y-2">
@@ -181,7 +172,6 @@ export default function Benchmark() {
           </div>
         </section>
 
-        {/* Run button */}
         <button
           onClick={runBenchmark}
           disabled={running || status !== "ready"}
@@ -190,7 +180,6 @@ export default function Benchmark() {
           {running ? `Running… ${progress}%` : "▶ Run benchmark"}
         </button>
 
-        {/* Progress bar */}
         {running && (
           <div className="w-full bg-white/10 rounded-full h-1.5">
             <div
@@ -200,7 +189,6 @@ export default function Benchmark() {
           </div>
         )}
 
-        {/* Results */}
         {results.length > 0 && (
           <section>
             <div className="flex items-center justify-between mb-4">
@@ -227,7 +215,6 @@ export default function Benchmark() {
                     </span>
                   </div>
 
-                  {/* Bar chart */}
                   {[
                     { label: "Tokens / second", value: r.tokensPerSecond, max: 200, unit: "tok/s", good: true },
                     { label: "Time to first token", value: r.timeToFirstToken, max: 5000, unit: "ms", good: false },
