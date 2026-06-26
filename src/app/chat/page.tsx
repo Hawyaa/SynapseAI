@@ -27,7 +27,7 @@ export default function Chat() {
   } = useModelStore();
 
   const {
-    messages, isStreaming,
+    messages, isStreaming, systemPrompt,
     addMessage, updateMessage, setStreaming,
     stopGeneration, setAbortController,
   } = useChatStore();
@@ -98,6 +98,7 @@ export default function Chat() {
       setStatus("ready");
       toast.success("Model loaded — ready to chat!");
     } catch (err) {
+      console.error("Model load failed:", err);
       setError(err instanceof Error ? err.message : "Unknown error");
       toast.error("Failed to load model");
     } finally {
